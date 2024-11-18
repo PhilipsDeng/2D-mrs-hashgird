@@ -4,7 +4,6 @@ import torch.nn.functional as F
 
 import numpy as np
 
-import tinycudann as tcnn
 
 class MLP(nn.Module):
     def __init__(self, dim_in, dim_out, dim_hidden, num_layers, bias=True, dtype=torch.float32):
@@ -26,4 +25,6 @@ class MLP(nn.Module):
             x = self.net[l](x)
             if l != self.num_layers - 1:
                 x = F.relu(x, inplace=True)
+            else:
+                x = torch.sigmoid(x)
         return x
