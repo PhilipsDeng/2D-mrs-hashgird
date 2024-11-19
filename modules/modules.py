@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
+import tinycudann as tcnn
 import numpy as np
 
 
@@ -28,3 +28,22 @@ class MLP(nn.Module):
             else:
                 x = torch.sigmoid(x)
         return x
+    
+class FusedMLP(nn.Module):
+    def __init__(self, dim_in, dim_out, dim_hidden, num_layers):
+        super().__init__()
+        
+
+        self.config = {
+            "otype": "CutlassMLP",    
+            "activation": "ReLU",        
+            "output_activation": "Sigmoid", 
+            "n_neurons": dim_hidden,            
+            "n_hidden_layers": num_layers,
+        }
+
+
+        self.fusedMLP = tcnn.Network(dim_in, dim_out, self.config) 
+
+    def forward(self, inputs):
+        return self.fusedMLP(inputs)

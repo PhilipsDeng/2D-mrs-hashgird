@@ -1,7 +1,7 @@
 hashgrid_config:
   dtype: full
   n_levels: 16
-  n_features_per_level: 4 # 1, 2, 4, 8
+  n_features_per_level: 2 # 1, 2, 4, 8
   log2_hashmap_size: 8
   base_resolution: 16
   max_resolution: 600
@@ -9,13 +9,13 @@ hashgrid_config:
 
 
 renderer_config:
-  dim_in: 64 #HAS to be n_levels * n_features_per_level
+  dim_in: 32 #HAS to be n_levels * n_features_per_level
   dim_out: 3  
   dim_hidden: 256
   num_layers: 4
 
 num_epochs: 20000
-lr: 0.0004
+lr: 0.00005
 
 resolution: 600
 

@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import os
 from PIL import Image
 import torchvision.transforms as transforms
+import time
 torch.backends.cudnn.benchmark = True
 
 # 加载 config.yaml 文件
@@ -40,8 +41,8 @@ def train(config):
     # 创建模型和优化器
     dtype = getattr(torch, config['dtype'])
     hashgrid = HashGrid(config['hashgrid_config']).to(device).to(dtype)
-    renderer = Renderer.hash_render(config['renderer_config']).to(device).to(dtype)
-    optimizer = optim.Adam([
+    renderer = Renderer.hash_renderer(config['renderer_config']).to(device).to(dtype)
+    optimizer = optim.AdamW([
         {'params': hashgrid.parameters()},
         {'params': renderer.parameters()}
     ], lr=config['lr'])
@@ -55,6 +56,7 @@ def train(config):
 
     # 训练
     for epoch in range(config['num_epochs']):
+        start_time = time.time()
         input = inputs.view(-1, 2).to(device).to(dtype) # -1是自动计算维度大小的意思
 
         output = hashgrid(input)
@@ -68,7 +70,10 @@ def train(config):
 
         torch.cuda.empty_cache()
 
-        print(f"Epoch [{epoch + 1}/{config['num_epochs']}], Loss: {loss.item()}")
+        end_time = time.time()
+        elapsed_time = end_time - start_time  
+        it_per_sec = 1 / elapsed_time  
+        print(f"Epoch [{epoch + 1}/{config['num_epochs']}], Loss: {loss.item()}, Speed: {it_per_sec:.2f} it/s")
 
         if epoch % 1000 == 0:
             os.makedirs('outputs', exist_ok=True)
@@ -91,7 +96,7 @@ def dynamic_res_inference(config,res):
     torch.cuda.empty_cache()
 
     hashgrid = HashGrid(config['hashgrid_config']).to(device)
-    renderer = Renderer.hash_render(config['renderer_config']).to(device)
+    renderer = Renderer.hash_renderer(config['renderer_config']).to(device)
 
     checkpoint = torch.load(os.path.join('outputs', f"epoch_{config['num_epochs']}model.pth"))
     hashgrid.load_state_dict(checkpoint['hashgrid_state_dict'])
@@ -132,7 +137,7 @@ def dynamic_res_inference(config,res):
 def main():
     config_path = 'config/config.yaml'
     config = load_config(config_path)
-    # train(config)
+    train(config)
     print("Starting Infenrence...")
     resolution = int(input('Please input the resolution: '))
     dynamic_res_inference(config,res=resolution)
